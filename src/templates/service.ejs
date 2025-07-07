@@ -1,0 +1,57 @@
+const Service = require('egg').Service;
+
+class <%= modelName %>Service extends Service {
+  async getOne(id) {
+    return this.ctx.model.<%= modelName %>.findOne({ _id: id });
+  }
+
+  async create(body) {
+    return this.ctx.model.<%= modelName %>.create(body);
+  }
+
+  async update(id, body) {
+    const result = await this.ctx.model.<%= modelName %>.updateOne({ _id: id }, { $set: body });
+    if (result.matchedCount === 0) {
+      throw new Error('无效的id');
+    }
+    return result;
+  }
+
+  async delete(id) {
+    const result = await this.ctx.model.<%= modelName %>.deleteOne({ _id: id });
+    if (result.deletedCount === 0) {
+      throw new Error('无效的id');
+    }
+    return result;
+  }
+
+  async getList(query) {
+    // 基础的分页查询逻辑，可以根据你的需求扩展
+    const { page = 1, pageSize = 10, ...restQuery } = query;
+    const skip = (page - 1) * pageSize;
+    const list = await this.ctx.model.<%= modelName %>
+      .find(restQuery)
+      .skip(skip)
+      .limit(parseInt(pageSize, 10))
+      .sort({ createdTime: -1 });
+    const total = await this.ctx.model.<%= modelName %>.countDocuments(restQuery);
+    return { list, total };
+  }
+
+  // --- Special Service Methods ---
+  <% if (specialServices && specialServices.length > 0) { %>
+    <% specialServices.forEach(service => { %>
+  /**
+   * <%= service.description %>
+   */
+  async <%= service.name %>(<%= service.params.join(', ') %>) {
+    // TODO: Implement your special business logic here.
+    // This is an auto-generated skeleton.
+    console.log('Executing <%= service.name %> with params:', <%= service.params.join(', ') %>);
+    return { message: 'success' };
+  }
+    <% }); %>
+  <% } %>
+}
+
+module.exports = <%= modelName %>Service;

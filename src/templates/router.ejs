@@ -1,0 +1,10 @@
+// --- Auto-generated for <%= modelName %> ---
+<% if (specialControllers && specialControllers.length > 0) { %>
+  <% specialControllers.forEach(controller => { %>
+subRouter.<%= controller.method.toLowerCase() %>(
+  '/<%= routeName %><%= controller.route %>',
+  controller.<%= modelName.toLowerCase() %>.<%= controller.name %>,
+);
+  <% }); %>
+<% } %>
+subRouter.resources('<%= routeName %>', '/<%= routeName %>', controller.<%= modelName.toLowerCase() %>);

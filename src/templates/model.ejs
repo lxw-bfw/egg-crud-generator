@@ -1,0 +1,40 @@
+const commonFiles = require('../utils/commSchemaFiles');
+
+<%
+const getType = (field) => {
+  if (field.type === 'ObjectId' && field.ref) {
+    return `{ type: Schema.Types.ObjectId, ref: '${field.ref}' }`;
+  }
+  if (field.type === 'Array' && field.subType) {
+    return `[${field.subType}]`;
+  }
+  return field.type;
+};
+%>
+
+module.exports = app => {
+  const mongoose = app.mongoose;
+  const Schema = mongoose.Schema;
+
+  const <%= modelName %>Schema = new Schema({
+<% fields.forEach(field => { %>
+    <%= field.name %>: {
+      type: <%= getType(field) %>,
+<% if (field.hasOwnProperty('default')) { %>
+      default: <%= JSON.stringify(field.default) %>,
+<% } %>
+<% if (field.hasOwnProperty('required')) { %>
+      required: <%= field.required %>,
+<% } %>
+    },
+<% }); %>
+    ...commonFiles,
+  });
+
+  <%= modelName %>Schema.pre('update', function (next) {
+    this.updateTime = new Date();
+    next();
+  });
+
+  return mongoose.model('<%= modelName %>', <%= modelName %>Schema);
+};

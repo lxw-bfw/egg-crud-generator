@@ -1,0 +1,9 @@
+# EJS模板文件
+*.ejs
+src/templates/
+
+# 其他忽略文件
+node_modules/
+dist/
+*.log
+.env 

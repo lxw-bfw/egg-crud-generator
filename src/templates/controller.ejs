@@ -1,0 +1,137 @@
+'use strict';
+
+const Controller = require('../utils/baseController');
+
+// [start] --- DO NOT EDIT ---
+// The following validation rules are auto-generated based on your model.json.
+// To add more rules, please edit the model.json file.
+<%
+const getRuleType = (field) => {
+  if (field.subType) {
+    return `array`; // 简单处理，更复杂可扩展
+  }
+  return field.type.toLowerCase();
+};
+
+const requiredFields = fields.filter(f => f.required);
+const optionalFields = fields.filter(f => !f.required);
+%>
+
+const createParamsRule = {
+  id: { type: 'string', required: true, allowEmpty: false },
+};
+
+const createBodyRule = {
+<% requiredFields.forEach(field => { %>
+  '<%= field.name %>': { type: '<%= getRuleType(field) %>', required: true },
+<% }); %>
+<% optionalFields.forEach(field => { %>
+  '<%= field.name %>': { type: '<%= getRuleType(field) %>', required: false },
+<% }); %>
+};
+
+const updateBodyRule = {
+<% fields.forEach(field => { %>
+  '<%= field.name %>': { type: '<%= getRuleType(field) %>', required: false },
+<% }); %>
+};
+// [end] --- DO NOT EDIT ---
+
+
+class <%= modelName %>Controller extends Controller {
+  // 获取单个<%= modelDescription %>
+  async show() {
+    const { ctx } = this;
+    const validateRes = await this.parameterValidate(createParamsRule, ctx.params);
+    if (!validateRes) return;
+
+    const { id } = ctx.params;
+    try {
+      const result = await ctx.service.<%= modelName.toLowerCase() %>.getOne(id);
+      this.success(result);
+    } catch (error) {
+      this.serviceErrorHandle('<%= modelName %>', 'getOne', error);
+    }
+  }
+  
+  // 创建<%= modelDescription %>
+  async create() {
+    const { ctx } = this;
+    const validateRes = await this.parameterValidate(createBodyRule, ctx.request.body);
+    if (!validateRes) return;
+    try {
+      const result = await ctx.service.<%= modelName.toLowerCase() %>.create(ctx.request.body);
+      this.success(result, 201);
+    } catch (error) {
+      this.serviceErrorHandle('<%= modelName %>', 'create', error);
+    }
+  }
+  
+  // 更新<%= modelDescription %>
+  async update() {
+    const { ctx } = this;
+    const validateParamRes = await this.parameterValidate(createParamsRule, ctx.params);
+    const validateBodyRes = await this.parameterValidate(updateBodyRule, ctx.request.body);
+    if (!validateParamRes || !validateBodyRes) return;
+    
+    const { id } = ctx.params;
+    try {
+      await ctx.service.<%= modelName.toLowerCase() %>.update(id, ctx.request.body);
+      this.success(null);
+    } catch (error) {
+      this.serviceErrorHandle('<%= modelName %>', 'update', error);
+    }
+  }
+
+  // 删除<%= modelDescription %>
+  async destroy() {
+    const { ctx } = this;
+    const validateRes = await this.parameterValidate(createParamsRule, ctx.params);
+    if (!validateRes) return;
+    
+    const { id } = ctx.params;
+    try {
+      await ctx.service.<%= modelName.toLowerCase() %>.delete(id);
+      this.success(null);
+    } catch (error) {
+      this.serviceErrorHandle('<%= modelName %>', 'delete', error);
+    }
+  }
+  
+  // 获取<%= modelDescription %>列表
+  async index() {
+    const { ctx } = this;
+    try {
+      const results = await ctx.service.<%= modelName.toLowerCase() %>.getList(ctx.query);
+      this.success(results);
+    } catch (error) {
+      this.serviceErrorHandle('<%= modelName %>', 'getList', error);
+    }
+  }
+
+  // --- Special Controller Methods ---
+  <% if (specialControllers && specialControllers.length > 0) { %>
+    <% specialControllers.forEach(controller => { %>
+  /**
+   * <%= controller.description %>
+   */
+  async <%= controller.name %>() {
+    const { ctx } = this;
+    <% if (controller.param) { %>
+    const { id } = ctx.params; // 简单假设特殊路由的参数都叫 id
+    try {
+      const result = await ctx.service.<%= modelName.toLowerCase() %>.<%= controller.serviceMethod %>(id);
+      this.success(result);
+    } catch (error) {
+      this.serviceErrorHandle('<%= modelName %>', '<%= controller.name %>', error);
+    }
+    <% } else { %>
+    // TODO: Implement logic for controllers without params
+    this.success('Not implemented yet.');
+    <% } %>
+  }
+    <% }); %>
+  <% } %>
+}
+
+module.exports = <%= modelName %>Controller;
